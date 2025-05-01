@@ -21,7 +21,6 @@
  *  3. This notice may not be removed or altered from any source distribution.
  */
 #include "xml.h"
-
 #ifdef XML_PARSER_VERBOSE
 #include <alloca.h>
 #endif
@@ -695,6 +694,7 @@ static struct xml_string* xml_parse_content(struct xml_parser* parser) {
  * ---
  */
 static struct xml_node* xml_parse_node(struct xml_parser* parser) {
+ next_tag:
 	xml_parser_info(parser, "node");
 
 	/* Setup variables
@@ -721,6 +721,17 @@ static struct xml_node* xml_parse_node(struct xml_parser* parser) {
 	original_length = tag_open->length;
 	attributes = xml_find_attributes(parser, tag_open);
 
+    /* If tag starts with ? or ! like in <?xml> and <!DOCTYPE> (metadata) */
+    /*  then they aren't root and skip to next tag */
+    if(tag_open->buffer[0] == '?' || tag_open->buffer[0] == '!')
+      {
+
+        xml_parser_info(parser, "meta tag omitted");
+        xml_parser_peek(parser, NEXT_CHARACTER);
+        goto next_tag;
+      }
+
+    
 	/* If tag ends with `/' it's self closing, skip content lookup */
 	if (tag_open->length > 0 && '/' == tag_open->buffer[original_length - 1]) {
 		/* Drop `/'
@@ -742,6 +753,7 @@ static struct xml_node* xml_parse_node(struct xml_parser* parser) {
 	/* Otherwise children are to be expected
 	 */
 	} else while ('/' != xml_parser_peek(parser, NEXT_CHARACTER)) {
+        
 
 		/* Parse child node
 		 */
