@@ -1,5 +1,5 @@
 # Project setup
-project(xml C CXX)
+project(xml)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "2")
 set(VERSION_PATCH "0")
